@@ -1,0 +1,5 @@
+flask
+
+#tao cluster
+# kubectl
+#... co ban cac thu

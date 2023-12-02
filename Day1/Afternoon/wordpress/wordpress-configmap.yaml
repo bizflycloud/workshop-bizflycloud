@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  mysql_password: c2VjcmV0MTIz
+kind: ConfigMap
+metadata:
+  name: mysql-pass
+  namespace: default
