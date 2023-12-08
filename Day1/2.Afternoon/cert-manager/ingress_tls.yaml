@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: quanlm-issuer
+    kubernetes.io/ingress.class: nginx
+  name: ingress
+  namespace: default
+spec:
+  rules:
+  - host: workshop.quanlm.site
+    http:
+      paths:
+      - backend:
+          service:
+            name: wordpress
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - workshop.quanlm.site
+    secretName: workshop-ssl

@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-dns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: external-dns
+rules:
+- apiGroups: [""]
+  resources: ["services","endpoints","pods"]
+  verbs: ["get","watch","list"]
+- apiGroups: ["extensions","networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get","watch","list"]
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: external-dns-viewer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: external-dns
+subjects:
+- kind: ServiceAccount
+  name: external-dns
+  namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccountName: external-dns
+      containers:
+      - name: external-dns
+        image: cr-hn-1.bizflycloud.vn/31ff9581861a4d0ea4df5e7dda0f665d/external-dns:v0.13.5-18-bfc
+        args:
+        - --source=service # ingress is also possible
+        - --source=ingress
+        - --domain-filter=quanlm.site # (optional) limit to only example.com domains
+        - --zone-id-filter=72ad7509-323e-47ee-a54e-a09ecb920d6e # (optional) limit to a specific zone
+        - --provider=bizflycloud
+        - --bizflycloud-api-page-size=1000 # (optional) configure how many DNS records to fetch per request
+        env:
+        - name: BFC_APP_CREDENTIAL_ID
+          value: a9fa90bdcaa1420c936a8bb34e415106
+        - name: BFC_APP_CREDENTIAL_SECRET
+          value: RbV-rI0b1nBNHI-VbVhy29GFoRiW3LxeDf7Rb97gftlwb7W1tR-vR1x2aNsqO_H9Z0AXOkwFYcmhY5G9tPgA3w
